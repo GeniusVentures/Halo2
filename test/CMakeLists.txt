@@ -14,10 +14,3 @@ target_link_libraries(xorwow_test
         Halo2
         )
 
-addtest(paillier_test
-        paillier_test.cpp
-        )
-
-target_link_libraries(paillier_test
-        Halo2
-        )

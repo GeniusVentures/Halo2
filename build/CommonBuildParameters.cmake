@@ -9,6 +9,7 @@ set(BOOST_VERSION_3U "${BOOST_MAJOR_VERSION}_${BOOST_MINOR_VERSION}_${BOOST_PATC
 set(BOOST_VERSION_2U "${BOOST_MAJOR_VERSION}_${BOOST_MINOR_VERSION}")
 
 include(${PROJECT_ROOT}/cmake/functions.cmake)
+find_package(OpenSSL REQUIRED)
 
 # --------------------------------------------------------
 # Set config of openssl project
@@ -21,7 +22,6 @@ set(OPENSSL_LIBRARIES "${OPENSSL_DIR}/lib")
 set(OPENSSL_CRYPTO_LIBRARY ${OPENSSL_LIBRARIES}/libcrypto${CMAKE_STATIC_LIBRARY_SUFFIX})
 set(OPENSSL_SSL_LIBRARY ${OPENSSL_LIBRARIES}/libssl${CMAKE_STATIC_LIBRARY_SUFFIX})
 
-find_package(OpenSSL REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIR})
 
 # --------------------------------------------------------

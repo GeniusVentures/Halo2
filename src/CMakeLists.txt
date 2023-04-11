@@ -7,6 +7,7 @@ set_target_properties(Halo2 PROPERTIES
         PUBLIC_HEADER "${HEADERS}"
         )
 
+# find_package(OpenSSL REQUIRED)
 target_link_libraries(Halo2
         PUBLIC OpenSSL::SSL
         spdlog::spdlog
