@@ -11,12 +11,10 @@ using namespace halo2_proofs::circuit;
 using namespace halo2_proofs::plonk;
 using namespace group::ff;
 
-template <typename F>
-class CondSwapInstructions : public UtilitiesInstructions<F> {
-public:
-    using Var = typename UtilitiesInstructions<F>::Var;
 
-    std::pair<Var, Var> swap(Layouter<F>& layouter, std::pair<Var, Value<F>> pair, Value<bool> swap) {
+namespace halo2::gadgets::utilities {
+
+    std::pair<Var, Var> CondSwapInstructions::swap(Layouter<F>& layouter, std::pair<Var, Value<F>> pair, Value<bool> swap) {
         Var a = pair.first;
         Var b = layouter.assign(Some(pair.second))?;
 
@@ -30,150 +28,73 @@ public:
 
         return {a, b};
     }
-};
 
+    template <typename F>
+    CondSwapConfig<F>::CondSwapConfig() {
+	q_swap = new Selector("q_swap");
+	a = new Column<Advice>("a");
+	b = new Column<Advice>("b");
+	a_swapped = new Column<Advice>("a_swapped");
+	b_swapped = new Column<Advice>("b_swapped");
+	swap = new Column<Advice>("swap")
+    }
 
-template <typename F>
-struct CondSwapConfig {
-    Selector q_swap;
-    Column<Advice> a;
-    Column<Advice> b;
-    Column<Advice> a_swapped;
-    Column<Advice> b_swapped;
-    Column<Advice> swap;
-};
-
-// Helper function for creating a CondSwapConfig instance with default column names.
-template <typename F>
-CondSwapConfig<F> make_default_cond_swap_config() {
-    return {
-        Selector::new("q_swap"),
-        Column<Advice>::new("a"),
-        Column<Advice>::new("b"),
-        Column<Advice>::new("a_swapped"),
-        Column<Advice>::new("b_swapped"),
-        Column<Advice>::new("swap"),
-    };
-}
-
-template <typename F>
-class CondSwapChip {
- public:
-  using PrimeField = F;
-
-  explicit CondSwapChip(const CondSwapConfig<F>& config)
-      : config_(config), _marker() {}
-
-  static CondSwapConfig<F> configure(ConstraintSystem<F>& meta,
-                                      std::array<Column<Advice>, 5> advices) {
-    auto a = advices[0];
-    meta.enable_equality(a);
-
-    auto q_swap = meta.selector();
-
-    auto config = CondSwapConfig<F>{
-        q_swap,
-        a,
-        advices[1],
-        advices[2],
-        advices[3],
-        advices[4],
-    };
-
-    meta.create_gate("a' = b * swap + a * (1 - swap)", [&](auto& meta) {
-      auto q_swap = meta.query_selector(config.q_swap);
-
-      auto a = meta.query_advice(config.a, Rotation::cur());
-      auto b = meta.query_advice(config.b, Rotation::cur());
-      auto a_swapped = meta.query_advice(config.a_swapped, Rotation::cur());
-      auto b_swapped = meta.query_advice(config.b_swapped, Rotation::cur());
-      auto swap = meta.query_advice(config.swap, Rotation::cur());
-
-      auto a_check = a_swapped - ternary(swap.clone(), b.clone(), a.clone());
-
-      auto b_check = b_swapped - ternary(swap.clone(), a, b);
-
-      auto bool_check = bool_check(swap);
-
-      return Constraints<>(q_swap, {
-        {"a check", a_check},
-        {"b check", b_check},
-        {"swap is bool", bool_check},
-      });
-    });
-
-    return config;
-  }
-
- private:
-};
-
-
-template <typename F>
-class CondSwapChip : public Chip<F>, public UtilitiesInstructions<F>, public CondSwapInstructions<F> {
-public:
-    using PrimeField = F;
-    using Var = AssignedCell<F, F>;
-    using Config = CondSwapConfig<F>;
-    using Loaded = std::nullptr_t;
-    using PrimeField = F;
-
-    explicit CondSwapChip(const CondSwapConfig<F>& config)
+    CondSwapChip::CondSwapChip(const CondSwapConfig<F>& config)
       : config_(config), _marker() {}
 
 
-    const Config& config() const override {
+    Config& CondSwapChip::config() const override {
         return config_;
     }
 
-    const Loaded& loaded() const override {
+    Loaded& CondSwapChip::loaded() const override {
         static std::nullptr_t dummy;
         return dummy;
     }
 
-    static CondSwapConfig<F> configure(ConstraintSystem<F>& meta,
+    CondSwapConfig<F> CondSwapChip::configure(ConstraintSystem<F>& meta,
                                       std::array<Column<Advice>, 5> advices) {
-    auto a = advices[0];
-    meta.enable_equality(a);
+        auto a = advices[0];
+        meta.enable_equality(a);
 
-    auto q_swap = meta.selector();
+        auto q_swap = meta.selector();
 
-    auto config = CondSwapConfig<F>{
-        q_swap,
-        a,
-        advices[1],
-        advices[2],
-        advices[3],
-        advices[4],
-    };
+        auto config = CondSwapConfig<F>{
+            q_swap,
+            a,
+            advices[1],
+            advices[2],
+            advices[3],
+            advices[4],
+        };
 
-    meta.create_gate("a' = b * swap + a * (1 - swap)", [&](auto& meta) {
-      auto q_swap = meta.query_selector(config.q_swap);
+        meta.create_gate("a' = b * swap + a * (1 - swap)", [&](auto& meta) {
+          auto q_swap = meta.query_selector(config.q_swap);
 
-      auto a = meta.query_advice(config.a, Rotation::cur());
-      auto b = meta.query_advice(config.b, Rotation::cur());
-      auto a_swapped = meta.query_advice(config.a_swapped, Rotation::cur());
-      auto b_swapped = meta.query_advice(config.b_swapped, Rotation::cur());
-      auto swap = meta.query_advice(config.swap, Rotation::cur());
+          auto a = meta.query_advice(config.a, Rotation::cur());
+          auto b = meta.query_advice(config.b, Rotation::cur());
+          auto a_swapped = meta.query_advice(config.a_swapped, Rotation::cur());
+          auto b_swapped = meta.query_advice(config.b_swapped, Rotation::cur());
+          auto swap = meta.query_advice(config.swap, Rotation::cur());
 
-      auto a_check = a_swapped - ternary(swap.clone(), b.clone(), a.clone());
+          auto a_check = a_swapped - ternary(swap.clone(), b.clone(), a.clone());
 
-      auto b_check = b_swapped - ternary(swap.clone(), a, b);
+          auto b_check = b_swapped - ternary(swap.clone(), a, b);
 
-      auto bool_check = bool_check(swap);
+          auto bool_check = bool_check(swap);
 
-      return Constraints<>(q_swap, {
-        {"a check", a_check},
-        {"b check", b_check},
-        {"swap is bool", bool_check},
-      });
-    });
+          return Constraints<>(q_swap, {
+            {"a check", a_check},
+            {"b check", b_check},
+            {"swap is bool", bool_check},
+          });
+        });
 
-    return config;
-  }
+        return config;
+    }
 
     // Implementation of the swap function for conditional swap
-    std::pair<Var, Var> swap(Layouter<F>& layouter, std::pair<Var, F>& pair, bool swap) override {
+    std::pair<Var, Var> CondSwapChip::swap(Layouter<F>& layouter, std::pair<Var, F>& pair, bool swap) {
         const auto config = this->config();
 
         layouter.assign_region(
@@ -227,9 +148,4 @@ public:
             }
         );
     }
-private:
-    Config config;
-    CondSwapConfig<F> config_;
-    std::tuple<PrimeField> _marker;
-};
-
+}

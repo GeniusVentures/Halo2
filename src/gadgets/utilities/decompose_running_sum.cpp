@@ -6,50 +6,28 @@
 #include <algorithm>
 
 
-template <typename F>
-class RunningSum {
-public:
-    explicit RunningSum(std::size_t size) : data_(size) {}
+namespace halo2::gadgets::utilities {
 
-    const std::vector<AssignedCell<F, F>>& operator*() const {
+    RunningSum::RunningSum(std::size_t size) : data_(size) {}
+    std::vector<AssignedCell<F, F>>& RunningSum::operator*() const {
         return data_;
     }
 
-private:
-    std::vector<AssignedCell<F, F>> data_;
-};
-
-
-template <typename F, std::size_t WINDOW_NUM_BITS>
-class RunningSumConfig {
-public:
-    explicit RunningSumConfig(Column<Advice> z, Selector q_range_check) :
+    RunningSumConfig::RunningSumConfig() {}
+    RunningSumConfig::RunningSumConfig(Column<Advice> z, Selector q_range_check) :
         q_range_check_(std::move(q_range_check)), z_(std::move(z)) {}
 
-private:
-    Selector q_range_check_;
-    Column<Advice> z_;
-    std::unique_ptr<std::remove_const_t<F>> _marker_;
-};
-
-
-template <typename F, size_t WINDOW_NUM_BITS>
-class RunningSumConfig {
-public:
-    using ColumnType = libsnark::linear_combination<F>;
     // Constructor
-    RunningSumConfig() {}
-    // Constructor
-    RunningSumConfig(ColumnType z_column, libsnark::pb_variable<F> q_range_check_var)
+    RunningSumConfig::RunningSumConfig(ColumnType z_column, libsnark::pb_variable<F> q_range_check_var)
         : z(std::move(z_column)), q_range_check(q_range_check_var) {}
 
     // Returns the q_range_check selector of this RunningSumConfig.
-    Selector q_range_check() const {
+    Selector RunningSumConfig::q_range_check() const {
         return q_range_check_;
     }
 
     // Configures the RunningSumConfig instance
-    static RunningSumConfig<F, WINDOW_NUM_BITS> configure(
+    RunningSumConfig<F, WINDOW_NUM_BITS> RunningSumConfig::configure(
         libsnark::protoboard<F>& pb,
         libsnark::pb_variable<F> q_range_check,
         const libsnark::pb_variable_array<F>& z
@@ -77,17 +55,17 @@ public:
         return config;
     }
     // Returns the `z` column of this RunningSumConfig instance
-    ColumnType get_z() const {
+    ColumnType RunningSumConfig::get_z() const {
         return z;
     }
 
     // Returns the `q_range_check` selector of this RunningSumConfig instance
-    libsnark::pb_variable<F> get_q_range_check() const {
+    libsnark::pb_variable<F> RunningSumConfig::get_q_range_check() const {
         return q_range_check_;
     }
 
     // Decomposes a field element `alpha` that is witnessed in this helper
-    RunningSum<F> witness_decompose(
+    RunningSum<F> RunningSumConfig::witness_decompose(
         libsnark::pb_variable_array<F>& input,
         const size_t offset,
         const F alpha,
@@ -102,7 +80,7 @@ public:
         return this->decompose(input, offset, strict, word_num_bits, num_windows);
     }
 
-    RunningSum<F> copy_decompose(
+    RunningSum<F> RunningSumConfig::copy_decompose(
         Region<F>& region,
         size_t offset,
         const AssignedCell<F>& alpha,
@@ -121,7 +99,7 @@ public:
      *
      * Panics if there are too many windows for the given word size.
      */
-    Result<RunningSum<F>, Error> decompose(
+    Result<RunningSum<F>, Error> RunningSumConfig::decompose(
         Region<F> *region,
         size_t offset,
         const AssignedCell<F> &z_0,
@@ -183,19 +161,6 @@ public:
 
         return Ok(RunningSum<F>(std::move(zs)));
     }
-
-private:
-    Selector q_range_check_;
-    ColumnType z;
-    Column<Advice> ca;
-    libsnark::pb_variable<F> q_range_check;
-};
-
-
-template <typename F, size_t WINDOW_NUM_BITS>
-class RunningSumConfig {
-public:
-    /* ... */
 
     /**
      * `z_0` must be the cell at `(self.z, offset)` in `region`.
@@ -204,7 +169,7 @@ public:
      *
      * Panics if there are too many windows for the given word size.
      */
-    Result<RunningSum<F>, Error> decompose(
+    Result<RunningSum<F>, Error> RunningSumConfig::decompose(
         Region<F> *region,
         size_t offset,
         const AssignedCell<F> &z_0,
@@ -266,6 +231,4 @@ public:
 
         return Ok(RunningSum<F>(std::move(zs)));
     }
-
-    /* ... */
-
+}
