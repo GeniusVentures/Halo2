@@ -24,10 +24,7 @@ class RunningSum {
   std::vector<AssignedCell<F, F>> cells_;
 };
 
-
-template <typename F, typename Cell>
-class RangeConstrained {
-public:
+namespace halo2::gadgets::utilities {
     // Witnesses a subset of the bits in `value` and constrains them to be the correct
     // number of bits.
     //
@@ -35,7 +32,7 @@ public:
     //
     // Panics if `bitrange.len() >= K`.
     template <std::size_t K>
-    static RangeConstrained<F, AssignedCell<F, F>> witness_short(
+    RangeConstrained::RangeConstrained<F, AssignedCell<F, F>> witness_short(
         const LookupRangeCheckConfig<F, K>& lookup_config,
         Layouter<F>& layouter,
         const Value<const F*>& value,
@@ -59,30 +56,21 @@ public:
         };
     }
 
-private:
-    RangeConstrained(
+    RangeConstrained::RangeConstrained(
         const AssignedCell<F, F>& inner,
         std::size_t num_bits,
         std::default_initialization_t
     ) : inner(inner), num_bits(num_bits) {}
 
-    AssignedCell<F, F> inner;
-    std::size_t num_bits;
-};
-
-
-template <typename F, std::size_t K>
-class LookupRangeCheckConfig {
-public:
-    LookupRangeCheckConfig(
-        Selector q_lookup_,
-        Selector q_running_,
-        Selector q_bitshift_,
-        const Column<Advice>& running_sum,
-        const TableColumn& table_idx,
-        std::default_initialization_t _marker
-    ) : q_lookup(q_lookup_), q_running(q_running_), q_bitshift(q_bitshift_),
-        running_sum(running_sum), table_idx(table_idx), _marker(_marker) {}
+	LookupRangeCheckConfig::LookupRangeCheckConfig(
+            Selector q_lookup_,
+            Selector q_running_,
+            Selector q_bitshift_,
+            const Column<Advice>& running_sum,
+            const TableColumn& table_idx,
+            std::default_initialization_t _marker
+        ) : q_lookup(q_lookup_), q_running(q_running_), q_bitshift(q_bitshift_),
+            running_sum(running_sum), table_idx(table_idx), _marker(_marker) {}
 
         meta->enable_equality(running_sum);
 
@@ -322,14 +310,6 @@ public:
         assignment.emplace_constant(this->running_sum, 2, inv_two_pow_s);
     }    
 
-
-private:
-    Selector q_lookup;
-    Selector q_running;
-    Selector q_bitshift;
-    Column<Advice> running_sum;
-    TableColumn table_idx;
-    std::default_initialization_t _marker;
 
 };
 

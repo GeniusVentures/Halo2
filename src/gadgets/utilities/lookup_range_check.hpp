@@ -1,6 +1,13 @@
 #ifndef SG_HALO2_GADGETS_UTILITIES_LOOKUP_RANGE_CHECK_HPP
 #define SG_HALO2_GADGETS_UTILITIES_LOOKUP_RANGE_CHECK_HPP
 
+#include <cstddef> // for std::size_t
+#include <memory> // for std::unique_ptr
+#include <cassert> // for assert
+#include <range/v3/view/subrange.hpp> // for ranges::subrange
+#include <range/v3/algorithm/copy.hpp> // for ranges::copy
+#include <range/v3/utility/static_const.hpp> // for ranges::views::all
+
 namespace halo2::gadgets::utilities {
 
     template <typename F, typename Cell>
